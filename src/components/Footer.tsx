@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Github, Twitter, Linkedin } from 'lucide-react';
 
 export default function Footer() {
@@ -13,7 +13,7 @@ export default function Footer() {
           <a href="#" className="text-gray-500 hover:text-purple-500 transition-colors duration-300">
             <Twitter className="w-6 h-6" />
           </a>
-          <a href="#" className="text-gray-500 hover:text-purple-500 transition-colors duration-300">
+          <a href="https://www.linkedin.com/in/mayankrawat2402/" className="text-gray-500 hover:text-purple-500 transition-colors duration-300">
             <Linkedin className="w-6 h-6" />
           </a>
         </div>
