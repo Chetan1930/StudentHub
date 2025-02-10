@@ -1,18 +1,32 @@
 import React, { useState } from "react";
 import { Mail, Lock, LogIn } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase";
+import { ToastContainer,toast } from "react-toastify";
+import SignInWithGoogle from "./SignInWithGoogle";
+
+
 
 export default function SignIn() {
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    try{
+      await signInWithEmailAndPassword(auth, formState.email, formState.password);
+      window.location.href = "/";
+      toast.success("Sign In Successful!",{position:"top-right" , autoClose: 2000});
+    }catch(err){
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "An error occurred");
+    }
+   
+
     
     // Simulate authentication
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Sign In Successful!");
-    setIsSubmitting(false);
+    
+    
   };
 
   return (
@@ -59,7 +73,10 @@ export default function SignIn() {
             {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
         </form>
+        <SignInWithGoogle />
+        {/* <SignInWithGithub /> */}
       </div>
+      <ToastContainer />
     </div>
   );
 }

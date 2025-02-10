@@ -1,19 +1,37 @@
 import React, { useState } from "react";
 import { Mail, Lock, UserPlus } from "lucide-react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth,db } from "./firebase";
+import {setDoc, doc, collection} from "firebase/firestore";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import SignInWithGoogle from "./SignInWithGoogle";
+
 
 export default function SignUp() {
   const [formState, setFormState] = useState({ name: "", email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate user registration
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Sign Up Successful!");
-    setIsSubmitting(false);
+    try{
+      await createUserWithEmailAndPassword(auth, formState.email, formState.password);
+       const user = auth.currentUser; 
+       console.log(user);
+       if(user){
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          fullname: formState.name,
+          photo: "",
+        });
+       }
+      toast.success("Sign Up Successful!",{position:"top-right" , autoClose: 2000});
+     }catch(error){
+        console.log(error);
+       toast.error(error instanceof Error ? error.message : "An error occurred",{position:"top-right" , autoClose: 2000});
+     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
@@ -73,7 +91,17 @@ export default function SignUp() {
             {isSubmitting ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
+        <div className="flex items-center justify-center my-4">
+          <p className="text-gray-400">Or you can use</p>
+        </div>
+        <SignInWithGoogle />
+        {/* <SignInWithGithub /> */}
+        
       </div>
+
+      <ToastContainer  />
     </div>
+    
+
   );
 }
