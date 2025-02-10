@@ -3,9 +3,9 @@ import React, { createContext, useContext, useState } from 'react';
 // This is just for demo, replace this with your database
 const DEMO_USERS = [
   {
-    email: 'test@example.com',
-    password: 'password123',
-    name: 'Test User'
+    email: 'ma@gmail.com',
+    password: '123',
+    name: 'MayankRawat'
   }
 ];
 
