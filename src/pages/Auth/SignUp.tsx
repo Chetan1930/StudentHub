@@ -1,25 +1,23 @@
 import React, { useState } from "react";
-import { Mail, Lock, UserPlus } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SignUp() {
-  const [formState, setFormState] = useState({ name: "", email: "", password: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signUp } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    const success = signUp(name, email, password);
     
-    try {
-      await signUp(formState.name, formState.email, formState.password);
-      navigate('/');
-    } catch (error) {
-      console.error('Sign up failed:', error);
-    } finally {
-      setIsSubmitting(false);
+    if (success) {
+      navigate('/signup-success');
+    } else {
+      setError("Email already exists");
     }
   };
 
@@ -27,58 +25,43 @@ export default function SignUp() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
       <div className="max-w-md w-full bg-gray-800 p-8 rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-center text-white mb-6">Sign Up</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="relative group">
-            <label className="block text-gray-400 mb-2">
-              <UserPlus className="inline-block mr-2" /> Name
-            </label>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
             <input
               type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Name"
+              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white"
               required
-              value={formState.name}
-              onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter your name"
             />
           </div>
-
-          <div className="relative group">
-            <label className="block text-gray-400 mb-2">
-              <Mail className="inline-block mr-2" /> Email
-            </label>
+          <div className="mb-4">
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white"
               required
-              value={formState.email}
-              onChange={(e) => setFormState({ ...formState, email: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter your email"
             />
           </div>
-
-          <div className="relative group">
-            <label className="block text-gray-400 mb-2">
-              <Lock className="inline-block mr-2" /> Password
-            </label>
+          <div className="mb-6">
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white"
               required
-              value={formState.password}
-              onChange={(e) => setFormState({ ...formState, password: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter your password"
             />
           </div>
-
-          <button
+          <button 
             type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center gap-2 text-white transition-all duration-300 ${
-              isSubmitting ? "opacity-75 cursor-not-allowed" : ""
-            }`}
+            className="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white"
           >
-            <UserPlus className={isSubmitting ? "animate-ping" : ""} />
-            {isSubmitting ? "Signing Up..." : "Sign Up"}
+            Sign Up
           </button>
         </form>
       </div>

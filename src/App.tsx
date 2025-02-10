@@ -10,6 +10,7 @@ import Contact from './pages/Contact';
 import About from './pages/About';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
+import SignupSuccess from './pages/Auth/SignupSuccess';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/signup-success" element={<SignupSuccess />} />
       </Routes>
       <Footer />
     </div>

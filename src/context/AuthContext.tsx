@@ -1,93 +1,53 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-interface User {
-  id?: string;
-  name: string;
-  email: string;
-  username: string;
-}
+// This is just for demo, replace this with your database
+const DEMO_USERS = [
+  {
+    email: 'test@example.com',
+    password: 'password123',
+    name: 'Test User'
+  }
+];
 
-interface AuthContextType {
-  user: User | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
-  signOut: () => void;
-  loading: boolean;
-}
+export const AuthContext = createContext(null);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+  const signIn = (email, password) => {
+    // Check if user exists and password matches
+    const user = DEMO_USERS.find(u => u.email === email && u.password === password);
+    if (user) {
+      setUser(user);
+      return true;
     }
-    setLoading(false);
-  }, []);
-
-  const signIn = async (email: string, password: string): Promise<void> => {
-    setLoading(true);
-    try {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const mockUser: User = {
-            id: '12345',
-            name: 'John Doe',
-            email,
-            username: email.split('@')[0],
-          };
-          setUser(mockUser);
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          resolve();
-        }, 1000);
-      });
-    } finally {
-      setLoading(false);
-    }
+    return false;
   };
 
-  const signUp = async (name: string, email: string, password: string): Promise<void> => {
-    setLoading(true);
-    try {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const mockUser: User = {
-            id: '67890',
-            name,
-            email,
-            username: email.split('@')[0],
-          };
-          setUser(mockUser);
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          resolve();
-        }, 1000);
-      });
-    } finally {
-      setLoading(false);
+  const signUp = (name, email, password) => {
+    // Check if user already exists
+    const exists = DEMO_USERS.find(u => u.email === email);
+    if (exists) {
+      return false;
     }
+    
+    // In real app, you would:
+    // 1. Connect to Supabase
+    // 2. Insert into auth.users table
+    // 3. Handle email verification if needed
+    
+    return true;
   };
 
   const signOut = () => {
-    localStorage.removeItem('user');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut }}>
+      {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used inside an <AuthProvider>');
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);
