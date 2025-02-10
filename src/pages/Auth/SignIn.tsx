@@ -1,18 +1,26 @@
 import React, { useState } from "react";
 import { Mail, Lock, LogIn } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function SignIn() {
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate authentication
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Sign In Successful!");
-    setIsSubmitting(false);
+    try {
+      await signIn(formState.email, formState.password);
+      navigate('/');
+    } catch (error) {
+      console.error('Sign in failed:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

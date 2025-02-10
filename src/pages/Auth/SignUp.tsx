@@ -1,18 +1,26 @@
 import React, { useState } from "react";
 import { Mail, Lock, UserPlus } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const [formState, setFormState] = useState({ name: "", email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate user registration
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Sign Up Successful!");
-    setIsSubmitting(false);
+    try {
+      await signUp(formState.name, formState.email, formState.password);
+      navigate('/');
+    } catch (error) {
+      console.error('Sign up failed:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
