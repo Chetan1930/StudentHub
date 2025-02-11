@@ -37,7 +37,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    // This effect will run every time the user changes
+    // This effect will run every time the user change
   }, [user]);
   
 
