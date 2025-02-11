@@ -27,6 +27,7 @@ export default function Navbar() {
   };
 
   // Protected navigation helper
+
   const handleProtectedNavigation = (path: string) => {
     if (!user) {
       navigate('/signin', { state: { from: path } });
@@ -34,6 +35,11 @@ export default function Navbar() {
     }
     navigate(path);
   };
+
+  useEffect(() => {
+    // This effect will run every time the user changes
+  }, [user]);
+  
 
   return (
     <nav className="fixed w-full bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 z-50">

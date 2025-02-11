@@ -1,51 +1,63 @@
-import React, { createContext, useContext, useState } from 'react';
-
-// This is just for demo, replace this with your database
-const DEMO_USERS = [
-  {
-    email: 'ma@gmail.com',
-    password: '123',
-    name: 'MayankRawat'
-  }
-];
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { ToastContainer, toast } from "react-toastify";
+import { auth, db } from "./firebase";
+import { setDoc, doc } from "firebase/firestore";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  const signIn = (email, password) => {
-    // Check if user exists and password matches
-    const user = DEMO_USERS.find(u => u.email === email && u.password === password);
-    if (user) {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      return true;
-    }
-    return false;
+    });
+    return unsubscribe;
+  }, []);
+
+  const signIn = (email, password) => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        window.location.href = "/";
+      })
+      .catch((err) => {
+        toast.error(err instanceof Error ? err.message : "Sign-in failed");
+      });
   };
 
   const signUp = (name, email, password) => {
-    // Check if user already exists
-    const exists = DEMO_USERS.find(u => u.email === email);
-    if (exists) {
-      return false;
-    }
-    
-    // In real app, you would:
-    // 1. Connect to Supabase
-    // 2. Insert into auth.users table
-    // 3. Handle email verification if needed
-    
-    return true;
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          fullname: name,
+          photo: "",
+        });
+        toast.success("Sign-up successful!");
+        window.location.href = "/";
+      })
+      .catch((err) => {
+        toast.error(err instanceof Error ? err.message : "Sign-up failed");
+      });
   };
 
   const signOut = () => {
-    setUser(null);
+    firebaseSignOut(auth)
+      .then(() => {
+        setUser(null);
+        
+      })
+      .catch((err) => {
+        toast.error(err instanceof Error ? err.message : "Sign-out failed");
+      });
   };
 
   return (
     <AuthContext.Provider value={{ user, signIn, signUp, signOut }}>
       {children}
+      <ToastContainer />
     </AuthContext.Provider>
   );
 }
