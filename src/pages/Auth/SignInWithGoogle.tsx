@@ -16,7 +16,7 @@ export default function SignInWithGoogle() {
                           fullname: result.user.displayName,
                           photo: result.user.photoURL,
                         });
-                toast.success("Sign In Successful!", { position: "top-right", autoClose: 2000 });
+               
                 window.location.href = "/";
             }
         });
