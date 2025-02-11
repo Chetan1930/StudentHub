@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
           fullname: name,
           photo: "",
         });
-        toast.success("Sign-up successful!");
+        
         window.location.href = "/";
       })
       .catch((err) => {
