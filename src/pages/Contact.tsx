@@ -7,20 +7,37 @@ export default function Contact() {
     email: '',
     query: ''
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [result, setResult] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setResult("Sending...");
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const formData = new FormData(e.target);
+    formData.append("access_key", "4522fcfd-2555-419a-8d88-11de4d4b20cc");
     
-    // Reset form
-    setFormState({ name: '', email: '', query: '' });
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setResult("Form Submitted Successfully");
+        setFormState({ name: '', email: '', query: '' });
+      } else {
+        console.error("Error", data);
+        setResult(data.message);
+      }
+    } catch (error) {
+      console.error("Submission Error", error);
+      setResult("An error occurred. Please try again.");
+    }
+    
     setIsSubmitting(false);
-    alert('Thank you for your message! We will get back to you soon.');
   };
 
   return (
@@ -35,11 +52,10 @@ export default function Contact() {
           <form 
             onSubmit={handleSubmit} 
             className="space-y-6"
-            data-netlify="true"
             name="contact"
             method="POST"
           >
-            <input type="hidden" name="form-name" value="contact" />
+            <input type="hidden" name="access_key" value="4522fcfd-2555-419a-8d88-11de4d4b20cc" />
             
             <div className="relative group">
               <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-2">
@@ -56,7 +72,6 @@ export default function Contact() {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 outline-none text-white"
                 placeholder="Enter your name"
               />
-              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-purple-500 transition-all duration-300 group-focus-within:w-full" />
             </div>
 
             <div className="relative group">
@@ -74,7 +89,6 @@ export default function Contact() {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 outline-none text-white"
                 placeholder="Enter your email"
               />
-              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-purple-500 transition-all duration-300 group-focus-within:w-full" />
             </div>
 
             <div className="relative group">
@@ -92,7 +106,6 @@ export default function Contact() {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 outline-none text-white resize-none"
                 placeholder="Tell us how we can help..."
               />
-              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-purple-500 transition-all duration-300 group-focus-within:w-full" />
             </div>
 
             <button
@@ -106,6 +119,7 @@ export default function Contact() {
               {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>
           </form>
+          <span className="block text-center mt-4 text-white">{result}</span>
         </div>
       </div>
     </div>
