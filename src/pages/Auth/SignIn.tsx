@@ -15,7 +15,7 @@ export default function SignIn() {
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    const success = signIn(email, password);
+    signIn(email, password);
     
     // if (success) {
     //   navigate('/');

@@ -31,14 +31,19 @@ export default function ProfileMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-purple-500 transition-colors"
       >
-        <User className="w-5 h-5" />
+        {/* <User className="w-5 h-5" /> */}
+        {user.photo ? (
+          <img src={user.photo} alt="Profile" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer"/>
+        ) : (
+          <User className="w-5 h-5" />
+        )}
         
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg py-2 z-50">
           <div className="px-4 py-3 border-b border-gray-700">
-            <p className="text-sm font-medium text-gray-200">{user.displayName || user.Name}</p>
+            <p className="text-sm font-medium text-gray-200">{user.displayName}</p>
             
 
             <p className="text-sm text-gray-400">{user.email}</p>
