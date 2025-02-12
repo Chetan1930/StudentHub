@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+import SignInWithGoogle from "./SignInWithGoogle";
+import { ToastContainer } from "react-toastify";
+
 export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,12 +16,12 @@ export default function SignUp() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const success = signUp(name, email, password);
-    
-    if (success) {
-      navigate('/signup-success');
-    } else {
-      setError("Email already exists");
-    }
+
+    // if (success) {
+    //   navigate('/signup-success');
+    // } else {
+    //   setError("Email already exists");
+    // }
   };
 
   return (
@@ -64,7 +67,16 @@ export default function SignUp() {
             Sign Up
           </button>
         </form>
+        <div className="flex items-center mt-6">
+      <div className="w-full border-t border-gray-600"></div>
+      <p className="px-4 text-gray-400">or</p>
+      <div className="w-full border-t border-gray-600"></div>
+    </div>
+    <div className="flex justify-center mt-4">
+      <SignInWithGoogle />
+            </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }

@@ -7,6 +7,9 @@ export default function ProfileMenu() {
   const { user, signOut } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
 
+
+
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -18,6 +21,9 @@ export default function ProfileMenu() {
   }, []);
 
   if (!user) return null;
+  console.log("m user hu",user.name);
+   const imgURl = user.Name;
+  
 
   return (
     <div className="relative" ref={menuRef}>
@@ -26,14 +32,15 @@ export default function ProfileMenu() {
         className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-purple-500 transition-colors"
       >
         <User className="w-5 h-5" />
-        <span>Profile</span>
+        
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg py-2 z-50">
           <div className="px-4 py-3 border-b border-gray-700">
-            <p className="text-sm font-medium text-gray-200">{user.name}</p>
-            <p className="text-sm text-gray-400">@{user.username}</p>
+            <p className="text-sm font-medium text-gray-200">{user.displayName || user.Name}</p>
+            
+
             <p className="text-sm text-gray-400">{user.email}</p>
           </div>
           <button
