@@ -66,7 +66,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => navigate('/notes')}
+              onClick={() => navigate('/attendance')}
               className="px-8 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-300 flex items-center gap-2 group"
             >
               <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />

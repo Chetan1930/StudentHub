@@ -11,6 +11,7 @@ import About from './pages/About';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import SignupSuccess from './pages/Auth/SignupSuccess';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -18,9 +19,21 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/attendance" element={<Attendance />} />
-        <Route path="/notes" element={<Notes />} />
-        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/attendance" element={
+          <ProtectedRoute>
+            <Attendance />
+          </ProtectedRoute>
+        } />
+        <Route path="/notes" element={
+          <ProtectedRoute>
+            <Notes />
+          </ProtectedRoute>
+        } />
+        <Route path="/portfolio" element={
+          <ProtectedRoute>
+            <Portfolio />
+          </ProtectedRoute>
+        } />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
         <Route path="/signin" element={<SignIn />} />
