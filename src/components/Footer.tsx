@@ -8,8 +8,8 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
           <p className="text-gray-400">
             Made with ❤️ by{' '}
-            <span className="text-purple-500">Chetan Chauhan</span> and{' '}
-            <span className="text-purple-500">Mayank Rawat</span>
+            <span className="text-purple-500"><a href="https://www.instagram.com/_.chetan_chauhan/" target="_blank" rel="noopener noreferrer">Chetan Chauhan</a></span> and{' '}
+            <span className="text-purple-500"><a href="https://www.linkedin.com/in/mayankrawat2402/" target="_blank" rel="noopener noreferrer">Mayank Rawat</a></span>
           </p>
           <div className="flex gap-4">
             <a 

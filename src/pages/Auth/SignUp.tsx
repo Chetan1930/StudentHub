@@ -74,7 +74,7 @@ export default function SignUp() {
               className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white mb-4"
               required
             />
-            <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+            <button type="submit" className="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white">
               Send OTP
             </button>
           </form>
