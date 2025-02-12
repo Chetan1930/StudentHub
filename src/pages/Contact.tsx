@@ -16,7 +16,7 @@ export default function Contact() {
     setResult("Sending...");
     
     const formData = new FormData(e.target);
-    formData.append("access_key", "4522fcfd-2555-419a-8d88-11de4d4b20cc");
+    formData.append("access_key", "ad4ea1ba-ae32-4fa8-80fd-2992806684a0");
     
     try {
       const response = await fetch("https://api.web3forms.com/submit", {
@@ -55,7 +55,7 @@ export default function Contact() {
             name="contact"
             method="POST"
           >
-            <input type="hidden" name="access_key" value="4522fcfd-2555-419a-8d88-11de4d4b20cc" />
+            <input type="hidden" name="access_key" value="ad4ea1ba-ae32-4fa8-80fd-2992806684a0" />
             
             <div className="relative group">
               <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-2">
