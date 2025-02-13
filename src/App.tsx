@@ -13,6 +13,7 @@ import SignUp from './pages/Auth/SignUp';
 import SignupSuccess from './pages/Auth/SignupSuccess';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import ResetPassword from './pages/Auth/ResetPassword';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signup-success" element={<SignupSuccess />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
       <Footer />
     </div>

@@ -99,7 +99,7 @@ export function AuthProvider({ children }) {
   };
   const resetPassword = async (email) => {
     const actionCodeSettings = {
-      url: `${window.location.origin}/signin`,
+      url: `${window.location.origin}/reset-password`,
       handleCodeInApp: true,
     };
     try {
