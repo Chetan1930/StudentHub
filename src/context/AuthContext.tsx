@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { updatePassword,sendPasswordResetEmail,signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import { auth, db } from "./firebase";
 import {collection,query,where,getDocs, setDoc, doc,getDoc,getFirestore } from "firebase/firestore";
-import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from 'firebase/auth';
+
 import { sendEmail } from "./sendEmail";
 export const AuthContext = createContext(null);
 
@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
   }, []);
 
 
-  const sendOtpToEmail = async (fullname, email) => {
+  const sendOtpToEmail = async (email) => {
     try {
      
       const usersRef = collection(db, "users");
@@ -50,6 +50,9 @@ export function AuthProvider({ children }) {
         toast.error("User already exists. Please log in.");
         return false; 
       }
+
+      const userDoc =  querySnapshot.docs[0].data();
+      const fullname = userDoc.fullname;
   
       
       const generatedOtp = Math.floor(100000 + Math.random() * 900000);
@@ -74,6 +77,7 @@ export function AuthProvider({ children }) {
     return true;
   };
 
+
   const setPasswordAndSignUp = async (fullname, password) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, storedEmail, password);
@@ -93,7 +97,18 @@ export function AuthProvider({ children }) {
       toast.error(err.message);
     }
   };
-
+  const resetPassword = async (email) => {
+    const actionCodeSettings = {
+      url: `${window.location.origin}/signin`,
+      handleCodeInApp: true,
+    };
+    try {
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      toast.success("Password reset instructions sent to your email.");
+    } catch (error) {
+      toast.error(error.message || "Failed to send password reset email.");
+    }
+  };
 
 
 
@@ -137,7 +152,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user,sendOtpToEmail,verifyOtp,setPasswordAndSignUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user,sendOtpToEmail,verifyOtp,setPasswordAndSignUp, signIn, signOut,resetPassword }}>
       {children}
       <ToastContainer />
     </AuthContext.Provider>

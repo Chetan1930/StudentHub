@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const { resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -14,9 +16,7 @@ export default function ForgotPassword() {
     setMessage('');
 
     try {
-      // In a real app, this would connect to your auth system
-      // For demo, we'll just show a success message
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      await resetPassword(email);
       setMessage('Password reset instructions have been sent to your email.');
       setEmail('');
     } catch (error) {
