@@ -11,6 +11,7 @@ import About from './pages/About';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import SignupSuccess from './pages/Auth/SignupSuccess';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signup-success" element={<SignupSuccess />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
       <Footer />
     </div>
