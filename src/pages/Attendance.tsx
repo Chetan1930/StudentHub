@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { ClipboardList, Plus, Check, Clock, Trash2, PlusCircle, AlertTriangle, ThumbsUp } from 'lucide-react';
+import { db } from '../context/firebase';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 interface Subject {
   id: string;
@@ -9,49 +13,82 @@ interface Subject {
 }
 
 export default function Attendance() {
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [newSubject, setNewSubject] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      if (user) {
+        try {
+          const docRef = doc(db, 'attendance', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setSubjects(docSnap.data().subjects || []);
+          }
+        } catch (err) {
+          setError('Failed to fetch attendance data.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchAttendance();
+  }, [user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  const saveAttendance = async (updatedSubjects: Subject[]) => {
+    if (user) {
+      const docRef = doc(db, 'attendance', user.uid);
+      await setDoc(docRef, { subjects: updatedSubjects }, { merge: true });
+    }
+  };
 
   const addSubject = () => {
     if (newSubject.trim()) {
-      setSubjects([
+      const updatedSubjects = [
         ...subjects,
-        {
-          id: Date.now().toString(),
-          name: newSubject.trim(),
-          attended: 0,
-          total: 0
-        }
-      ]);
+        { id: Date.now().toString(), name: newSubject.trim(), attended: 0, total: 0 }
+      ];
+      setSubjects(updatedSubjects);
+      saveAttendance(updatedSubjects);
       setNewSubject('');
       setShowAddModal(false);
     }
   };
 
   const recordClass = (subjectId: string) => {
-    setSubjects(subjects.map(subject => 
-      subject.id === subjectId 
-        ? { ...subject, total: subject.total + 1 }
-        : subject
-    ));
+    const updatedSubjects = subjects.map(subject =>
+      subject.id === subjectId ? { ...subject, total: subject.total + 1 } : subject
+    );
+    setSubjects(updatedSubjects);
+    saveAttendance(updatedSubjects);
   };
 
   const markAttendance = (subjectId: string) => {
-    setSubjects(subjects.map(subject => 
-      subject.id === subjectId 
-        ? { 
-            ...subject, 
-            attended: subject.attended + 1,
-            total: subject.total + 1
-          }
+    const updatedSubjects = subjects.map(subject =>
+      subject.id === subjectId
+        ? { ...subject, attended: subject.attended + 1, total: subject.total + 1 }
         : subject
-    ));
+    );
+    setSubjects(updatedSubjects);
+    saveAttendance(updatedSubjects);
   };
 
   const deleteSubject = (subjectId: string) => {
-    setSubjects(subjects.filter(subject => subject.id !== subjectId));
+    const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
+    setSubjects(updatedSubjects);
+    saveAttendance(updatedSubjects);
   };
 
   const calculatePercentage = (attended: number, total: number) => {
@@ -59,29 +96,18 @@ export default function Attendance() {
     return ((attended / total) * 100).toFixed(1);
   };
 
-  const getAttendanceColor = (percentage: number) => {
-    if (percentage >= 75) return 'text-green-500';
-    if (percentage >= 60) return 'text-yellow-500';
-    return 'text-red-500';
-  };
-
   const calculateRequiredClasses = (attended: number, total: number) => {
     if (total === 0) return 0;
     const currentPercentage = (attended / total) * 100;
-    
     if (currentPercentage >= 75) {
-      // Calculate how many classes can be skipped while maintaining 75%
-      const maxSkippableClasses = Math.floor((attended - (0.75 * total)) / 0.75);
-      return maxSkippableClasses;
+      return Math.floor((attended - 0.75 * total) / 0.75);
     } else {
-      // Calculate how many classes need to be attended to reach 75%
-      const requiredAttendance = Math.ceil((0.75 * total - attended) / 0.25);
-      return requiredAttendance;
+      return Math.ceil((0.75 * total - attended) / 0.25);
     }
   };
 
-  const totalAttended = subjects.reduce((acc, subject) => acc + subject.attended, 0);
-  const totalClasses = subjects.reduce((acc, subject) => acc + subject.total, 0);
+  const totalAttended = subjects.reduce((acc, s) => acc + s.attended, 0);
+  const totalClasses = subjects.reduce((acc, s) => acc + s.total, 0);
   const overallPercentage = Number(calculatePercentage(totalAttended, totalClasses));
   const requiredClasses = calculateRequiredClasses(totalAttended, totalClasses);
 
@@ -95,129 +121,72 @@ export default function Attendance() {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-300 flex items-center gap-2 group"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2"
           >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-            Add Subject
+            <Plus className="w-5 h-5" /> Add Subject
           </button>
         </div>
 
-        {/* Overall Attendance Card */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 animate-fade-in">
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Overall Attendance</h2>
-          <div className="flex items-center gap-8">
-            <div>
-              <div className={`text-4xl font-bold ${getAttendanceColor(overallPercentage)}`}>
-                {overallPercentage}%
+          <div className="text-4xl font-bold text-green-400">{overallPercentage}%</div>
+          <div className="text-gray-300">{totalAttended} / {totalClasses} classes</div>
+          <div className="mt-4 text-gray-200">
+            {overallPercentage >= 75 ? (
+              <div>
+                You can skip {requiredClasses} classes without dropping below 75%.
               </div>
-              <div className="text-gray-400 mt-1">
-                {totalAttended} / {totalClasses} classes
-              </div>
-            </div>
-            
-            {totalClasses > 0 && (
-              <div className="flex-1 p-4 rounded-lg bg-gray-700/50">
-                {overallPercentage >= 75 ? (
-                  <div className="flex items-start gap-3">
-                    <ThumbsUp className="w-5 h-5 text-green-500 mt-1" />
-                    <div>
-                      <div className="text-green-500 font-semibold">Good Standing!</div>
-                      <div className="text-gray-300">
-                        You can skip up to <span className="text-green-500 font-bold">{requiredClasses}</span> more {requiredClasses === 1 ? 'class' : 'classes'} while maintaining 75% attendance.
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-yellow-500 mt-1" />
-                    <div>
-                      <div className="text-yellow-500 font-semibold">Attention Needed</div>
-                      <div className="text-gray-300">
-                        You need to attend <span className="text-yellow-500 font-bold">{requiredClasses}</span> more {requiredClasses === 1 ? 'class' : 'classes'} to reach 75% attendance.
-                      </div>
-                    </div>
-                  </div>
-                )}
+            ) : (
+              <div>
+                Attend {requiredClasses} more classes to reach 75%.
               </div>
             )}
           </div>
         </div>
 
-        {/* Subjects Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {subjects.map(subject => (
-            <div 
-              key={subject.id}
-              className="bg-gray-800 rounded-lg p-6 hover:shadow-lg transition-all duration-300 group"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-semibold group-hover:text-purple-500 transition-colors">
-                  {subject.name}
-                </h3>
-                <button
-                  onClick={() => deleteSubject(subject.id)}
-                  className="text-gray-500 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 className="w-5 h-5" />
+            <div key={subject.id} className="bg-gray-800 rounded-lg p-6">
+              <div className="flex justify-between mb-4">
+                <h3 className="text-xl font-semibold text-purple-300">{subject.name}</h3>
+                <button onClick={() => deleteSubject(subject.id)}>
+                  <Trash2 className="w-5 h-5 text-red-500" />
                 </button>
               </div>
-              
-              <div className="mb-4">
-                <div className={`text-3xl font-bold ${getAttendanceColor(Number(calculatePercentage(subject.attended, subject.total)))}`}>
-                  {calculatePercentage(subject.attended, subject.total)}%
-                </div>
-                <div className="text-gray-400">
-                  {subject.attended} / {subject.total} classes
-                </div>
-              </div>
-
-              <div className="flex gap-2">
+              <div className="text-3xl font-bold text-green-400">{calculatePercentage(subject.attended, subject.total)}%</div>
+              <div className="text-gray-300">{subject.attended}/{subject.total} classes</div>
+              <div className="mt-4 flex gap-2">
                 <button
+                  className="px-3 py-2 bg-green-600 rounded" 
                   onClick={() => markAttendance(subject.id)}
-                  className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Check className="w-4 h-4" />
-                  Present
-                </button>
+                >Present</button>
                 <button
+                  className="px-3 py-2 bg-yellow-600 rounded"
                   onClick={() => recordClass(subject.id)}
-                  className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Clock className="w-4 h-4" />
-                  Absent
-                </button>
+                >Absent</button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Add Subject Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md animate-fade-in">
-              <h2 className="text-xl font-semibold mb-4">Add New Subject</h2>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newSubject}
-                  onChange={(e) => setNewSubject(e.target.value)}
-                  placeholder="Enter subject name"
-                  className="flex-1 px-4 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-                <button
-                  onClick={addSubject}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <PlusCircle className="w-5 h-5" />
-                  Add
-                </button>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+            <div className="bg-gray-800 p-6 rounded">
+              <input
+                className="p-2 w-full mb-4 text-white bg-gray-700"
+                type="text"
+                placeholder="Enter subject name"
+                value={newSubject}
+                onChange={(e) => setNewSubject(e.target.value)}
+              />
+              <button
+                className="px-4 py-2 bg-purple-600 text-white mr-2"
+                onClick={addSubject}
+              >Add</button>
+              <button
+                className="px-4 py-2 bg-gray-600 text-white"
+                onClick={() => setShowAddModal(false)}
+              >Cancel</button>
             </div>
           </div>
         )}
