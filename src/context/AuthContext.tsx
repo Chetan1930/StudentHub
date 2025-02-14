@@ -11,6 +11,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [otp, setOtp] = useState(null);
   const [storedEmail, setStoredEmail] = useState("");
+  const [loading, setLoading] = useState(true);
   const db = getFirestore();
 
   // useEffect(() => {
@@ -33,6 +34,7 @@ export function AuthProvider({ children }) {
       } else {
         setUser(null);
       }
+      setLoading(false); 
     });
   
     return unsubscribe;
@@ -151,7 +153,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user,sendOtpToEmail,verifyOtp,setPasswordAndSignUp, signIn, signOut,resetPassword }}>
+    <AuthContext.Provider value={{ user,loading,sendOtpToEmail,verifyOtp,setPasswordAndSignUp, signIn, signOut,resetPassword }}>
       {children}
       <ToastContainer />
     </AuthContext.Provider>
