@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
   }, []);
 
 
-  const sendOtpToEmail = async (email) => {
+  const sendOtpToEmail = async (fullname,email) => {
     try {
      
       const usersRef = collection(db, "users");
@@ -51,8 +51,7 @@ export function AuthProvider({ children }) {
         return false; 
       }
 
-      const userDoc =  querySnapshot.docs[0].data();
-      const fullname = userDoc.fullname;
+     
   
       
       const generatedOtp = Math.floor(100000 + Math.random() * 900000);
@@ -104,7 +103,7 @@ export function AuthProvider({ children }) {
     };
     try {
       await sendPasswordResetEmail(auth, email, actionCodeSettings);
-      toast.success("Password reset instructions sent to your email.");
+     
     } catch (error) {
       toast.error(error.message || "Failed to send password reset email.");
     }

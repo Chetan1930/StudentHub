@@ -36,16 +36,16 @@ export default function SignUp() {
   };
 
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-     signUp(fullname, email, password);
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //    signUp(fullname, email, password);
 
-    // if (success) {
-    //   navigate('/signup-success');
-    // } else {
-    //   setError("Email already exists");
-    // }
-  };
+  //   // if (success) {
+  //   //   navigate('/signup-success');
+  //   // } else {
+  //   //   setError("Email already exists");
+  //   // }
+  // };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
