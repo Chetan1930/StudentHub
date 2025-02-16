@@ -1,5 +1,20 @@
 import React, { useState } from 'react';
-import { ClipboardList, Plus, Check, Clock, Trash2, PlusCircle, AlertTriangle, ThumbsUp, Calendar, BarChart2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  ClipboardList, 
+  Plus, 
+  Check, 
+  Clock, 
+  Trash2, 
+  PlusCircle, 
+  AlertTriangle, 
+  ThumbsUp, 
+  Calendar, 
+  BarChart2, 
+  ChevronUp, 
+  ChevronDown, 
+  ChevronLeft, 
+  ChevronRight 
+} from 'lucide-react';
 
 interface AttendanceRecord {
   date: string;
@@ -60,10 +75,25 @@ export default function Attendance() {
           return subject;
         }
 
+        // Add a record when adjusting attendance
+        const newRecords = [...subject.records];
+        if (field === 'attended') {
+          if (increment) {
+            newRecords.push({ date: new Date().toISOString(), status: 'present' });
+          } else if (subject.records.length > 0) {
+            // Remove the last present record when decreasing attended
+            const lastPresentIndex = newRecords.findLastIndex(r => r.status === 'present');
+            if (lastPresentIndex !== -1) {
+              newRecords.splice(lastPresentIndex, 1);
+            }
+          }
+        }
+
         return {
           ...subject,
           [field]: newValue,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
+          records: newRecords
         };
       }
       return subject;
@@ -296,58 +326,70 @@ export default function Attendance() {
                 <h2 className="text-xl font-semibold">Monthly Progress</h2>
               </div>
               <div className="flex items-center gap-2">
-                <button 
-                  onClick={prevMonth}
-                  className="p-1 hover:bg-gray-700 rounded-lg transition-colors"
+                <button
+                  onClick={() => setShowMonthlyDetails(!showMonthlyDetails)}
+                  className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  {showMonthlyDetails ? 'Hide Details' : 'Show Details'}
                 </button>
-                <span className="text-sm font-medium min-w-[120px] text-center">
-                  {months[selectedMonth]} {selectedYear}
-                </span>
-                <button 
-                  onClick={nextMonth}
-                  className="p-1 hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+                {showMonthlyDetails && (
+                  <>
+                    <button 
+                      onClick={prevMonth}
+                      className="p-1 hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <span className="text-sm font-medium min-w-[120px] text-center">
+                      {months[selectedMonth]} {selectedYear}
+                    </span>
+                    <button 
+                      onClick={nextMonth}
+                      className="p-1 hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Monthly Calendar View */}
-            <div className="grid grid-cols-7 gap-1 text-center text-sm">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-gray-500 font-medium py-1">
-                  {day}
-                </div>
-              ))}
-              {Array.from({ length: new Date(selectedYear, selectedMonth, 1).getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-              {monthlyData.map(({ day, present, total, percentage }) => (
-                <div 
-                  key={day}
-                  className={`aspect-square p-1 rounded-lg ${
-                    total > 0 
-                      ? percentage >= 75 
-                        ? 'bg-green-500/20' 
-                        : percentage >= 60 
-                          ? 'bg-yellow-500/20' 
-                          : 'bg-red-500/20'
-                      : 'bg-gray-700/50'
-                  }`}
-                >
-                  <div className="h-full flex flex-col justify-between p-1">
-                    <span className="text-xs">{day}</span>
-                    {total > 0 && (
-                      <div className="text-[10px] font-medium">
-                        {present}/{total}
-                      </div>
-                    )}
+            {showMonthlyDetails && (
+              <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-gray-500 font-medium py-1">
+                    {day}
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+                {Array.from({ length: new Date(selectedYear, selectedMonth, 1).getDay() }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square" />
+                ))}
+                {monthlyData.map(({ day, present, total, percentage }) => (
+                  <div 
+                    key={day}
+                    className={`aspect-square p-1 rounded-lg ${
+                      total > 0 
+                        ? percentage >= 75 
+                          ? 'bg-green-500/20' 
+                          : percentage >= 60 
+                            ? 'bg-yellow-500/20' 
+                            : 'bg-red-500/20'
+                        : 'bg-gray-700/50'
+                    }`}
+                  >
+                    <div className="h-full flex flex-col justify-between p-1">
+                      <span className="text-xs">{day}</span>
+                      {total > 0 && (
+                        <div className="text-[10px] font-medium">
+                          {present}/{total}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
