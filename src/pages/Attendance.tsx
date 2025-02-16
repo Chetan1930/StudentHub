@@ -70,7 +70,7 @@ export default function Attendance() {
           return subject;
         }
         
-        // If reducing total, ensure it doesn't go below attended
+        
         if (field === 'total' && !increment && newValue < subject.attended) {
           return subject;
         }
