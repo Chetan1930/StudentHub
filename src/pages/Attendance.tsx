@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ClipboardList, 
   Plus, 
@@ -13,9 +13,7 @@ import {
   ChevronUp, 
   ChevronDown, 
   ChevronLeft, 
-  ChevronRight,
-  Save,
-  AlertCircle
+  ChevronRight 
 } from 'lucide-react';
 
 interface AttendanceRecord {
@@ -33,33 +31,47 @@ interface Subject {
 }
 
 export default function Attendance() {
+
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [newSubject, setNewSubject] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showMonthlyDetails, setShowMonthlyDetails] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const addSubject = () => {
     if (newSubject.trim()) {
-      setSubjects([
-        ...subjects,
-        {
-          id: Date.now().toString(),
-          name: newSubject.trim(),
-          attended: 0,
-          total: 0,
-          lastUpdated: new Date().toISOString(),
-          records: []
-        }
-      ]);
+      setSubjects(prevSubjects => {
+        const updatedSubjects = [
+          ...prevSubjects,
+          {
+            id: Date.now().toString(),
+            name: newSubject.trim(),
+            attended: 0,
+            total: 0,
+            lastUpdated: new Date().toISOString(),
+            records: []
+          }
+        ];
+        saveAttendance(updatedSubjects);
+        return updatedSubjects;
+      });
       setNewSubject('');
       setShowAddModal(false);
       setHasUnsavedChanges(true);
     }
   };
+ 
+
+
+ 
+  const pushtodatabase = () => {
+    saveAttendance(subjects);
+  };
+
 
   const adjustAttendance = (subjectId: string, field: 'attended' | 'total', increment: boolean) => {
     setSubjects(subjects.map(subject => {
@@ -73,7 +85,7 @@ export default function Attendance() {
           return subject;
         }
         
-        // If reducing total, ensure it doesn't go below attended
+        
         if (field === 'total' && !increment && newValue < subject.attended) {
           return subject;
         }
@@ -92,7 +104,6 @@ export default function Attendance() {
           }
         }
 
-        setHasUnsavedChanges(true);
         return {
           ...subject,
           [field]: newValue,
@@ -103,6 +114,7 @@ export default function Attendance() {
       return subject;
     }));
   };
+
 
   const recordClass = (subjectId: string) => {
     setSubjects(subjects.map(subject => 
@@ -118,8 +130,8 @@ export default function Attendance() {
           }
         : subject
     ));
-    setHasUnsavedChanges(true);
   };
+
 
   const markAttendance = (subjectId: string) => {
     setSubjects(subjects.map(subject => 
@@ -136,27 +148,11 @@ export default function Attendance() {
           }
         : subject
     ));
-    setHasUnsavedChanges(true);
   };
+
 
   const deleteSubject = (subjectId: string) => {
     setSubjects(subjects.filter(subject => subject.id !== subjectId));
-    setHasUnsavedChanges(true);
-  };
-
-  const saveChanges = async () => {
-    setIsSaving(true);
-    try {
-      // Here you would make an API call to save the data
-      // For now, we'll simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setHasUnsavedChanges(false);
-    } catch (error) {
-      console.error('Failed to save changes:', error);
-      // Here you would show an error message to the user
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   const calculatePercentage = (attended: number, total: number) => {
@@ -508,7 +504,7 @@ export default function Attendance() {
                     {percentage}%
                   </span>
                 </div>
-
+                {/* <button onClick={pushtodatabase}>hi</button> */}
                 <div className="col-span-2 flex justify-center gap-2">
                   <button
                     onClick={() => markAttendance(subject.id)}
@@ -522,7 +518,7 @@ export default function Attendance() {
                     className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                     title="Mark Absent"
                   >
-                    <Clock className="w-4 h-4" />
+                    <X className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => deleteSubject(subject.id)}
