@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ClipboardList, 
   Plus, 
@@ -13,7 +13,9 @@ import {
   ChevronUp, 
   ChevronDown, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  Save,
+  AlertCircle
 } from 'lucide-react';
 
 interface AttendanceRecord {
@@ -37,8 +39,8 @@ export default function Attendance() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showMonthlyDetails, setShowMonthlyDetails] = useState(false);
-
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const addSubject = () => {
     if (newSubject.trim()) {
@@ -55,6 +57,7 @@ export default function Attendance() {
       ]);
       setNewSubject('');
       setShowAddModal(false);
+      setHasUnsavedChanges(true);
     }
   };
 
@@ -70,7 +73,7 @@ export default function Attendance() {
           return subject;
         }
         
-        
+        // If reducing total, ensure it doesn't go below attended
         if (field === 'total' && !increment && newValue < subject.attended) {
           return subject;
         }
@@ -89,6 +92,7 @@ export default function Attendance() {
           }
         }
 
+        setHasUnsavedChanges(true);
         return {
           ...subject,
           [field]: newValue,
@@ -114,6 +118,7 @@ export default function Attendance() {
           }
         : subject
     ));
+    setHasUnsavedChanges(true);
   };
 
   const markAttendance = (subjectId: string) => {
@@ -131,10 +136,27 @@ export default function Attendance() {
           }
         : subject
     ));
+    setHasUnsavedChanges(true);
   };
 
   const deleteSubject = (subjectId: string) => {
     setSubjects(subjects.filter(subject => subject.id !== subjectId));
+    setHasUnsavedChanges(true);
+  };
+
+  const saveChanges = async () => {
+    setIsSaving(true);
+    try {
+      // Here you would make an API call to save the data
+      // For now, we'll simulate an API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      // Here you would show an error message to the user
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const calculatePercentage = (attended: number, total: number) => {
@@ -235,6 +257,8 @@ export default function Attendance() {
     }
   };
 
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
   return (
     <div className="min-h-screen pt-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -243,13 +267,33 @@ export default function Attendance() {
             <ClipboardList className="w-8 h-8 text-purple-500" />
             <h1 className="text-3xl font-bold">Attendance Tracker</h1>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-300 flex items-center gap-2 group"
-          >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-            Add Subject
-          </button>
+          <div className="flex items-center gap-4">
+            {hasUnsavedChanges && (
+              <div className="flex items-center gap-2 text-yellow-500">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-sm">Unsaved changes</span>
+              </div>
+            )}
+            <button
+              onClick={saveChanges}
+              disabled={!hasUnsavedChanges || isSaving}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
+                hasUnsavedChanges 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-300 flex items-center gap-2 group"
+            >
+              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+              Add Subject
+            </button>
+          </div>
         </div>
 
         {/* Overall Attendance Stats */}
