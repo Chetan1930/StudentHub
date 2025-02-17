@@ -1,23 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ClipboardList, 
-  Plus, 
-  Check, 
-  Clock, 
-  Trash2, 
-  PlusCircle, 
-  AlertTriangle, 
-  ThumbsUp, 
-  Calendar, 
-  BarChart2, 
-  ChevronUp, 
-  ChevronDown, 
-  ChevronLeft, 
-  ChevronRight,
-  Save,
-  AlertCircle
-} from 'lucide-react';
-
+import React, { useState,useEffect } from 'react';
+import { ClipboardList, Plus, Check, Clock, Trash2, PlusCircle, AlertTriangle, ThumbsUp, Calendar, BarChart2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,X } from 'lucide-react';
+import { db } from '../context/firebase';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 interface AttendanceRecord {
   date: string;
   status: 'present' | 'absent';
@@ -33,130 +18,150 @@ interface Subject {
 }
 
 export default function Attendance() {
+
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [newSubject, setNewSubject] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showMonthlyDetails, setShowMonthlyDetails] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      if (user) {
+        try {
+          const docRef = doc(db, 'attendance', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setSubjects(docSnap.data().subjects || []);
+          }
+        } catch (err) {
+          setError('Failed to fetch attendance data.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchAttendance();
+  }, [user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  const saveAttendance = async (updatedSubjects: Subject[]) => {
+    if (user) {
+      const docRef = doc(db, 'attendance', user.uid);
+      await setDoc(docRef, { subjects: updatedSubjects }, { merge: true });
+    }
+  };
 
   const addSubject = () => {
     if (newSubject.trim()) {
-      setSubjects([
-        ...subjects,
-        {
-          id: Date.now().toString(),
-          name: newSubject.trim(),
-          attended: 0,
-          total: 0,
-          lastUpdated: new Date().toISOString(),
-          records: []
-        }
-      ]);
+      setSubjects(prevSubjects => {
+        const updatedSubjects = [
+          ...prevSubjects,
+          {
+            id: Date.now().toString(),
+            name: newSubject.trim(),
+            attended: 0,
+            total: 0,
+            lastUpdated: new Date().toISOString(),
+            records: []
+          }
+        ];
+        saveAttendance(updatedSubjects);
+        return updatedSubjects;
+      });
       setNewSubject('');
       setShowAddModal(false);
-      setHasUnsavedChanges(true);
     }
   };
+ 
+
+
+ 
+  const pushtodatabase = () => {
+    saveAttendance(subjects);
+  };
+
 
   const adjustAttendance = (subjectId: string, field: 'attended' | 'total', increment: boolean) => {
-    setSubjects(subjects.map(subject => {
-      if (subject.id === subjectId) {
-        const newValue = increment 
-          ? subject[field] + 1 
-          : Math.max(0, subject[field] - 1);
-        
-        // Ensure attended doesn't exceed total
-        if (field === 'attended' && newValue > subject.total) {
-          return subject;
+    setSubjects(prevSubjects => {
+      const updatedSubjects = prevSubjects.map(subject => {
+        if (subject.id === subjectId) {
+          const newValue = increment ? subject[field] + 1 : Math.max(0, subject[field] - 1);
+          if (field === 'attended' && newValue > subject.total) return subject;
+          if (field === 'total' && newValue < subject.attended) return subject;
+          return { ...subject, [field]: newValue };
         }
-        
-        // If reducing total, ensure it doesn't go below attended
-        if (field === 'total' && !increment && newValue < subject.attended) {
-          return subject;
-        }
-
-        // Add a record when adjusting attendance
-        const newRecords = [...subject.records];
-        if (field === 'attended') {
-          if (increment) {
-            newRecords.push({ date: new Date().toISOString(), status: 'present' });
-          } else if (subject.records.length > 0) {
-            // Remove the last present record when decreasing attended
-            const lastPresentIndex = newRecords.findLastIndex(r => r.status === 'present');
-            if (lastPresentIndex !== -1) {
-              newRecords.splice(lastPresentIndex, 1);
-            }
-          }
-        }
-
-        setHasUnsavedChanges(true);
-        return {
-          ...subject,
-          [field]: newValue,
-          lastUpdated: new Date().toISOString(),
-          records: newRecords
-        };
-      }
-      return subject;
-    }));
+        return subject;
+      });
+      // saveAttendance(updatedSubjects);
+      // useEffect(() => {saveAttendance(updatedSubjects);}, []);
+      return updatedSubjects;
+    });
   };
+
 
   const recordClass = (subjectId: string) => {
-    setSubjects(subjects.map(subject => 
-      subject.id === subjectId 
-        ? { 
-            ...subject, 
-            total: subject.total + 1,
-            lastUpdated: new Date().toISOString(),
-            records: [
-              ...subject.records,
-              { date: new Date().toISOString(), status: 'absent' }
-            ]
-          }
-        : subject
-    ));
-    setHasUnsavedChanges(true);
+    setSubjects(prevSubjects => {
+      const updatedSubjects = prevSubjects.map(subject =>
+        subject.id === subjectId
+          ? {
+              ...subject,
+              total: subject.total + 1,
+              lastUpdated: new Date().toISOString(),
+              records: [
+                ...subject.records,
+                { date: new Date().toISOString(), status: 'absent' }
+              ]
+            }
+          : subject
+      );
+      saveAttendance(updatedSubjects);
+      return updatedSubjects;
+    });
   };
+
 
   const markAttendance = (subjectId: string) => {
-    setSubjects(subjects.map(subject => 
-      subject.id === subjectId 
-        ? { 
-            ...subject, 
-            attended: subject.attended + 1,
-            total: subject.total + 1,
-            lastUpdated: new Date().toISOString(),
-            records: [
-              ...subject.records,
-              { date: new Date().toISOString(), status: 'present' }
-            ]
-          }
-        : subject
-    ));
-    setHasUnsavedChanges(true);
+    setSubjects(prevSubjects => {
+      const updatedSubjects = prevSubjects.map(subject =>
+        subject.id === subjectId
+          ? {
+              ...subject,
+              attended: subject.attended + 1,
+              total: subject.total + 1,
+              lastUpdated: new Date().toISOString(),
+              records: [
+                ...subject.records,
+                { date: new Date().toISOString(), status: 'present' }
+              ]
+            }
+          : subject
+      );
+      saveAttendance(updatedSubjects);
+      return updatedSubjects;
+    });
   };
+
 
   const deleteSubject = (subjectId: string) => {
-    setSubjects(subjects.filter(subject => subject.id !== subjectId));
-    setHasUnsavedChanges(true);
-  };
-
-  const saveChanges = async () => {
-    setIsSaving(true);
-    try {
-      // Here you would make an API call to save the data
-      // For now, we'll simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setHasUnsavedChanges(false);
-    } catch (error) {
-      console.error('Failed to save changes:', error);
-      // Here you would show an error message to the user
-    } finally {
-      setIsSaving(false);
-    }
+    setSubjects(prevSubjects => {
+      const updatedSubjects = prevSubjects.filter(subject => subject.id !== subjectId);
+      saveAttendance(updatedSubjects);
+      return updatedSubjects;
+    });
   };
 
   const calculatePercentage = (attended: number, total: number) => {
@@ -257,8 +262,6 @@ export default function Attendance() {
     }
   };
 
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
   return (
     <div className="min-h-screen pt-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -267,33 +270,13 @@ export default function Attendance() {
             <ClipboardList className="w-8 h-8 text-purple-500" />
             <h1 className="text-3xl font-bold">Attendance Tracker</h1>
           </div>
-          <div className="flex items-center gap-4">
-            {hasUnsavedChanges && (
-              <div className="flex items-center gap-2 text-yellow-500">
-                <AlertCircle className="w-5 h-5" />
-                <span className="text-sm">Unsaved changes</span>
-              </div>
-            )}
-            <button
-              onClick={saveChanges}
-              disabled={!hasUnsavedChanges || isSaving}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
-                hasUnsavedChanges 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-300 flex items-center gap-2 group"
-            >
-              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-              Add Subject
-            </button>
-          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-300 flex items-center gap-2 group"
+          >
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+            Add Subject
+          </button>
         </div>
 
         {/* Overall Attendance Stats */}
@@ -508,7 +491,7 @@ export default function Attendance() {
                     {percentage}%
                   </span>
                 </div>
-
+                {/* <button onClick={pushtodatabase}>hi</button> */}
                 <div className="col-span-2 flex justify-center gap-2">
                   <button
                     onClick={() => markAttendance(subject.id)}
@@ -522,7 +505,7 @@ export default function Attendance() {
                     className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                     title="Mark Absent"
                   >
-                    <Clock className="w-4 h-4" />
+                    <X className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => deleteSubject(subject.id)}
