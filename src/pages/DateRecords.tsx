@@ -5,7 +5,6 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 interface AttendanceRecord {
-  date: string;
   status: 'present' | 'absent';
   subjectName: string;
 }
@@ -13,9 +12,6 @@ interface AttendanceRecord {
 interface Subject {
   id: string;
   name: string;
-  attended: number;
-  total: number;
-  lastUpdated?: string;
   records: AttendanceRecord[];
 }
 
@@ -27,7 +23,6 @@ const DateRecords = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    console.log('fetching records');
     const fetchRecords = async () => {
       if (user) {
         try {
@@ -37,14 +32,14 @@ const DateRecords = () => {
             const subjects: Subject[] = docSnap.data().subjects || [];
             const filteredRecords = subjects.flatMap(subject =>
               subject.records
-                .filter(record => record.date.startsWith(date))
+                .filter(record => record.status)
                 .map(record => ({ ...record, subjectName: subject.name }))
             );
             setRecords(filteredRecords);
           } else {
             setError('No attendance records found.');
           }
-        } catch (err) {
+        } catch {
           setError('Failed to fetch attendance records.');
         } finally {
           setLoading(false);
@@ -54,10 +49,8 @@ const DateRecords = () => {
     fetchRecords();
   }, [user, date]);
 
-  // Function to toggle status (present <-> absent)
   const toggleStatus = async (recordIndex: number) => {
     if (!user) return;
-    
     const updatedRecords = [...records];
     updatedRecords[recordIndex].status = updatedRecords[recordIndex].status === 'present' ? 'absent' : 'present';
     setRecords(updatedRecords);
@@ -70,13 +63,12 @@ const DateRecords = () => {
         const subjects: Subject[] = data.subjects || [];
 
         for (let subject of subjects) {
-          let record = subject.records.find(r => r.date === updatedRecords[recordIndex].date);
+          let record = subject.records.find(r => r.subjectName === updatedRecords[recordIndex].subjectName);
           if (record) {
             record.status = updatedRecords[recordIndex].status;
             break;
           }
         }
-
         await updateDoc(docRef, { subjects });
       }
     } catch (error) {
@@ -84,11 +76,8 @@ const DateRecords = () => {
     }
   };
 
-  // Function to delete a record
   const deleteRecord = async (recordIndex: number) => {
     if (!user) return;
-
-    const recordToDelete = records[recordIndex];
     const updatedRecords = records.filter((_, index) => index !== recordIndex);
     setRecords(updatedRecords);
 
@@ -98,11 +87,10 @@ const DateRecords = () => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         const subjects: Subject[] = data.subjects || [];
-
+        
         for (let subject of subjects) {
-          subject.records = subject.records.filter(r => r.date !== recordToDelete.date);
+          subject.records = subject.records.filter(r => r.subjectName !== records[recordIndex].subjectName);
         }
-
         await updateDoc(docRef, { subjects });
       }
     } catch (error) {
@@ -110,35 +98,44 @@ const DateRecords = () => {
     }
   };
 
-  if (loading) return <div>Loading records...</div>;
-  if (error) return <div>{error}</div>;
-
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Records for {date}</h1>
-      {records.length === 0 ? (
-        <p>No records found for this date.</p>
-      ) : (
-        <ul className="list-disc pl-5">
-          {records.map((record, index) => (
-            <li key={index} className="mb-2 flex items-center gap-2">
-              <span>{record.date} - {record.subjectName} - {record.status}</span>
-              <button 
-                onClick={() => toggleStatus(index)} 
-                className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded"
-              >
-                Change
-              </button>
-              <button 
-                onClick={() => deleteRecord(index)} 
-                className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul> 
-      )}
+    <div className="min-h-screen pt-20 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <h1 className="text-3xl font-bold">Records for {date}</h1>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-8">
+          {loading ? (
+            <p className="text-gray-400">Loading records...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : records.length === 0 ? (
+            <p className="text-gray-400">No records found for this date.</p>
+          ) : (
+            <ul className="space-y-3">
+              {records.map((record, index) => (
+                <li key={index} className="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow-sm">
+                  <span className="text-gray-700">{record.subjectName} - {record.status}</span>
+                  <div className="space-x-2">
+                    <button 
+                      onClick={() => toggleStatus(index)}
+                      className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600"
+                    >
+                      Change
+                    </button>
+                    <button 
+                      onClick={() => deleteRecord(index)}
+                      className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
