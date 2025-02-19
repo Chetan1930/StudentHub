@@ -18,8 +18,9 @@ import DateRecords from './pages/DateRecords';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       <Navbar />
+      <div className="flex-grow">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/attendance" element={
@@ -46,6 +47,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/date-records/:date" element={<DateRecords />} />
       </Routes>
+      </div>
       <Footer />
     </div>
   );

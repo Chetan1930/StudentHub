@@ -57,8 +57,7 @@ export default function NotesApp() {
               value={formState.branch}
             >
               <option value="">Select Branch</option>
-              <option value="CE1">CE1</option>
-              <option value="CE2">CE2</option>
+              <option value="CE">CE1</option>
               <option value="IT">IT</option>
               <option value="CEDS">CEDS</option>
               <option value="EE">EE</option>
