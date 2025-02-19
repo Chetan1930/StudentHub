@@ -4,12 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "vite preview",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "heroku-postbuild": "vite build"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
