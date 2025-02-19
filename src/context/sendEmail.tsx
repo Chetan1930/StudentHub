@@ -15,10 +15,10 @@ export const sendEmail = async (fullname,email, otp) => {
 
   try {
     await emailjs.send(
-     "service_cujcmqs", 
-     "template_5b2p0am", 
+      import.meta.env.VITE_EMAILJS_SERVICE_ID, 
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID, 
       templateParams, 
-      "FpUffqPZlmZCsmpdh"
+      import.meta.env.VITE_EMAILJS_USER_ID
     );
   } catch (error) {
     throw new Error("Email sending failed.");
