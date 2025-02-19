@@ -473,7 +473,7 @@ export default function Attendance() {
             </div>
 
             {/* Monthly Calendar View */}
-            {showMonthlyDetails && (
+            {/* {showMonthlyDetails && (
               <div className="grid grid-cols-7 gap-1 text-center text-sm">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                   <div key={day} className="text-gray-500 font-medium py-1">
@@ -507,7 +507,46 @@ export default function Attendance() {
                   </div>
                 ))}
               </div>
-            )}
+            )} */}
+            {showMonthlyDetails && (
+  <div className="grid grid-cols-7 gap-1 text-center text-sm">
+    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+      <div key={day} className="text-gray-500 font-medium py-1">
+        {day}
+      </div>
+    ))}
+    {Array.from({ length: new Date(selectedYear, selectedMonth, 1).getDay() }).map((_, i) => (
+      <div key={`empty-${i}`} className="aspect-square" />
+    ))}
+    {monthlyData.map(({ day, present, total, percentage }) => (
+      <div 
+      key={day}
+      className={`cursor-pointer aspect-square p-1 rounded-lg ${
+        total > 0 
+          ? percentage >= 75 
+            ? 'bg-green-500/20' 
+            : percentage >= 60 
+              ? 'bg-yellow-500/20'
+              : 'bg-red-500/20'
+          : 'bg-gray-700/50'
+      }`}
+      onClick={() => {
+        const formattedDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        window.location.href = `/date-records/${formattedDate}`;
+      }}
+    >
+      <div className="h-full flex flex-col justify-between p-1">
+        <span className="text-xs">{day}</span>
+        {total > 0 && (
+          <div className="text-[10px] font-medium">
+            {present}/{total}
+          </div>
+        )}
+      </div>
+    </div>
+    ))}
+  </div>
+)}
           </div>
         </div>
 

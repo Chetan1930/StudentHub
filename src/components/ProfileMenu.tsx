@@ -21,7 +21,7 @@ export default function ProfileMenu() {
   }, []);
 
   if (!user) return null;
-  console.log("m user hu",user.name);
+
    const imgURl = user.Name;
   
 

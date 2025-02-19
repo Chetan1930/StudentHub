@@ -14,6 +14,7 @@ import SignupSuccess from './pages/Auth/SignupSuccess';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/Auth/ResetPassword';
+import DateRecords from './pages/DateRecords';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
         <Route path="/signup-success" element={<SignupSuccess />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/date-records/:date" element={<DateRecords />} />
       </Routes>
       <Footer />
     </div>
