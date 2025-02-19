@@ -48,51 +48,70 @@ const DateRecords = () => {
     };
     fetchRecords();
   }, [user, date]);
-
   const toggleStatus = async (recordIndex: number) => {
     if (!user) return;
+  
     const updatedRecords = [...records];
-    updatedRecords[recordIndex].status = updatedRecords[recordIndex].status === 'present' ? 'absent' : 'present';
+    updatedRecords[recordIndex].status =
+      updatedRecords[recordIndex].status === 'present' ? 'absent' : 'present';
     setRecords(updatedRecords);
-
+  
     try {
       const docRef = doc(db, 'attendance', user.uid);
       const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const subjects: Subject[] = data.subjects || [];
-
-        for (let subject of subjects) {
-          let record = subject.records.find(r => r.subjectName === updatedRecords[recordIndex].subjectName);
-          if (record) {
-            record.status = updatedRecords[recordIndex].status;
-            break;
-          }
-        }
-        await updateDoc(docRef, { subjects });
+  
+      if (!docSnap.exists()) {
+        console.error("User attendance document not found.");
+        return;
       }
+  
+      const data = docSnap.data();
+      let subjects: Subject[] = data.subjects || [];
+  
+      let updatedSubjects = subjects.map(subject => ({
+        ...subject,
+        records: subject.records.map(record =>
+          record.date === updatedRecords[recordIndex].date
+            ? { ...record, status: updatedRecords[recordIndex].status }
+            : record
+        ),
+      }));
+  
+      console.log("Updating Firestore with:", updatedSubjects);
+      await updateDoc(docRef, { subjects: updatedSubjects });
+  
     } catch (error) {
       console.error('Error updating record:', error);
     }
   };
-
   const deleteRecord = async (recordIndex: number) => {
     if (!user) return;
+  
     const updatedRecords = records.filter((_, index) => index !== recordIndex);
     setRecords(updatedRecords);
-
+  
     try {
       const docRef = doc(db, 'attendance', user.uid);
       const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const subjects: Subject[] = data.subjects || [];
-        
-        for (let subject of subjects) {
-          subject.records = subject.records.filter(r => r.subjectName !== records[recordIndex].subjectName);
-        }
-        await updateDoc(docRef, { subjects });
+  
+      if (!docSnap.exists()) {
+        console.error("User attendance document not found.");
+        return;
       }
+  
+      const data = docSnap.data();
+      let subjects: Subject[] = data.subjects || [];
+  
+      let updatedSubjects = subjects.map(subject => ({
+        ...subject,
+        records: subject.records.filter(
+          record => record.date !== records[recordIndex].date
+        ),
+      }));
+  
+      console.log("Updating Firestore after deletion with:", updatedSubjects);
+      await updateDoc(docRef, { subjects: updatedSubjects });
+  
     } catch (error) {
       console.error('Error deleting record:', error);
     }
