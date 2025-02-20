@@ -15,12 +15,25 @@ interface Subject {
   records: AttendanceRecord[];
 }
 
+
 const DateRecords = () => {
   const { date } = useParams<{ date: string }>();
   const { user } = useAuth();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+
+const handleAction = (action) => {
+  if (buttonDisabled) return; // Prevent multiple clicks
+
+  setButtonDisabled(true);
+  action(); // Execute the passed function
+
+  setTimeout(() => {
+    setButtonDisabled(false);
+  }, 1000); // 1-second delay
+};
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -30,9 +43,10 @@ const DateRecords = () => {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const subjects: Subject[] = docSnap.data().subjects || [];
+            console.log("Fetched subjects:", subjects);
             const filteredRecords = subjects.flatMap(subject =>
               subject.records
-                .filter(record => record.status)
+                .filter(record => record.date.split('T')[0] === date)
                 .map(record => ({ ...record, subjectName: subject.name }))
             );
             setRecords(filteredRecords);
@@ -137,13 +151,15 @@ const DateRecords = () => {
                   <span className="text-gray-700">{record.subjectName} - {record.status}</span>
                   <div className="space-x-2">
                     <button 
-                      onClick={() => toggleStatus(index)}
+                      onClick={() => handleAction(() => toggleStatus(index))}
+                      disabled={buttonDisabled}
                       className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600"
                     >
                       Change
                     </button>
                     <button 
-                      onClick={() => deleteRecord(index)}
+                      onClick={() => handleAction(() => deleteRecord(index))}
+                      disabled={buttonDisabled}
                       className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
                     >
                       Delete
