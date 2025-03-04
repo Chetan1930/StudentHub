@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Upload, 
   BookOpen, 
@@ -16,11 +16,13 @@ import {
   Edit,
   Save,
   Loader2,
-  Shield
+  Shield,
+  AlertCircle,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-// Mock data for notes
+// Mock data for notes with file content for viewing
 const MOCK_NOTES = [
   {
     id: '1',
@@ -33,7 +35,8 @@ const MOCK_NOTES = [
     fileUrl: '#',
     fileType: 'pdf',
     fileSize: '2.4 MB',
-    uploadedBy: 'John Doe'
+    uploadedBy: 'John Doe',
+    content: 'This is a sample content for Introduction to Data Structures. In a real application, this would be the actual file content or a link to the file.'
   },
   {
     id: '2',
@@ -46,7 +49,8 @@ const MOCK_NOTES = [
     fileUrl: '#',
     fileType: 'pdf',
     fileSize: '1.8 MB',
-    uploadedBy: 'Jane Smith'
+    uploadedBy: 'Jane Smith',
+    content: 'This is a sample content for Algorithms Analysis. In a real application, this would be the actual file content or a link to the file.'
   },
   {
     id: '3',
@@ -59,7 +63,8 @@ const MOCK_NOTES = [
     fileUrl: '#',
     fileType: 'pdf',
     fileSize: '3.2 MB',
-    uploadedBy: 'Alex Johnson'
+    uploadedBy: 'Alex Johnson',
+    content: 'This is a sample content for Database Management Systems. In a real application, this would be the actual file content or a link to the file.'
   },
   {
     id: '4',
@@ -72,7 +77,8 @@ const MOCK_NOTES = [
     fileUrl: '#',
     fileType: 'pdf',
     fileSize: '4.1 MB',
-    uploadedBy: 'Sarah Williams'
+    uploadedBy: 'Sarah Williams',
+    content: 'This is a sample content for Operating Systems Concepts. In a real application, this would be the actual file content or a link to the file.'
   },
   {
     id: '5',
@@ -85,9 +91,13 @@ const MOCK_NOTES = [
     fileUrl: '#',
     fileType: 'pdf',
     fileSize: '2.9 MB',
-    uploadedBy: 'Michael Brown'
+    uploadedBy: 'Michael Brown',
+    content: 'This is a sample content for Computer Networks. In a real application, this would be the actual file content or a link to the file.'
   }
 ];
+
+// Maximum file size in MB
+const MAX_FILE_SIZE = 200;
 
 export default function Notes() {
   const [showUploadForm, setShowUploadForm] = useState(false);
@@ -113,8 +123,11 @@ export default function Notes() {
     key: 'uploadDate',
     direction: 'desc'
   });
+  const [viewingNote, setViewingNote] = useState(null);
+  const [fileError, setFileError] = useState("");
   
   const { user } = useAuth();
+  const fileInputRef = useRef(null);
   
   // For demo purposes, we'll consider a specific user as admin
   const isAdmin = user && user.email === 'test@example.com';
@@ -136,7 +149,8 @@ export default function Notes() {
         fileUrl: '#',
         fileType: formState.file ? formState.file.name.split('.').pop() : 'pdf',
         fileSize: formState.file ? `${(formState.file.size / (1024 * 1024)).toFixed(1)} MB` : '0 MB',
-        uploadedBy: user ? user.name : 'Guest User'
+        uploadedBy: user ? user.name : 'Guest User',
+        content: `This is a sample content for ${formState.title}. In a real application, this would be the actual file content.`
       };
       
       setNotes([newNote, ...notes]);
@@ -169,6 +183,29 @@ export default function Notes() {
       subject: ""
     });
     setSearchTerm("");
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFileError("");
+    
+    if (file) {
+      const fileSizeMB = file.size / (1024 * 1024);
+      if (fileSizeMB > MAX_FILE_SIZE) {
+        setFileError(`File size exceeds the maximum limit of ${MAX_FILE_SIZE}MB`);
+        // Reset the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+      
+      setFormState({...formState, file: file});
+    }
+  };
+
+  const viewNote = (note) => {
+    setViewingNote(note);
   };
 
   const filteredNotes = notes.filter(note => {
@@ -393,6 +430,7 @@ export default function Notes() {
                       <td className="px-4 py-3">
                         <div className="flex justify-center gap-2">
                           <button
+                            onClick={() => viewNote(note)}
                             className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                             title="View"
                           >
@@ -586,9 +624,10 @@ export default function Notes() {
                   <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
                     <input
                       type="file"
-                      onChange={(e) => setFormState({...formState, file: e.target.files[0]})}
+                      onChange={handleFileChange}
                       className="hidden"
                       id="file-upload"
+                      ref={fileInputRef}
                       required
                     />
                     <label
@@ -600,10 +639,16 @@ export default function Notes() {
                         {formState.file ? formState.file.name : "Click to select a file"}
                       </span>
                       <span className="text-xs text-gray-500">
-                        Supported formats: PDF, DOCX, PPT, TXT (Max: 10MB)
+                        Supported formats: PDF, DOCX, PPT, TXT (Max: {MAX_FILE_SIZE}MB)
                       </span>
                     </label>
                   </div>
+                  {fileError && (
+                    <div className="mt-2 text-red-500 flex items-center gap-2 text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      {fileError}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex justify-end gap-3 pt-4">
@@ -616,8 +661,10 @@ export default function Notes() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isUploading}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2"
+                    disabled={isUploading || fileError}
+                    className={`px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2 ${
+                      (isUploading || fileError) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   >
                     {isUploading ? (
                       <>
@@ -633,6 +680,95 @@ export default function Notes() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* View Note Modal */}
+        {viewingNote && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-auto animate-fade-in">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-purple-500" />
+                  <h2 className="text-xl font-semibold">{viewingNote.title}</h2>
+                </div>
+                <button
+                  onClick={() => setViewingNote(null)}
+                  className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-sm text-gray-400">Subject</p>
+                  <p className="text-white">{viewingNote.subject}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Course</p>
+                  <p className="text-white">{viewingNote.course} • Year {viewingNote.year.charAt(0)} • Semester {viewingNote.semester}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Uploaded By</p>
+                  <p className="text-white">{viewingNote.uploadedBy}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Upload Date</p>
+                  <p className="text-white">
+                    {new Date(viewingNote.uploadDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">File Type</p>
+                  <p className="text-white">{viewingNote.fileType.toUpperCase()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">File Size</p>
+                  <p className="text-white">{viewingNote.fileSize}</p>
+                </div>
+              </div>
+              
+              <div className="border-t border-gray-700 pt-6">
+                <h3 className="text-lg font-medium mb-4">File Content</h3>
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  {viewingNote.fileType === 'pdf' ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 mb-4">PDF Viewer would be displayed here in a real application.</p>
+                      <p className="text-sm text-gray-500">{viewingNote.content}</p>
+                    </div>
+                  ) : viewingNote.fileType === 'docx' ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 mb-4">DOCX Viewer would be displayed here in a real application.</p>
+                      <p className="text-sm text-gray-500">{viewingNote.content}</p>
+                    </div>
+                  ) : (
+                    <pre className="whitespace-pre-wrap text-gray-300 font-mono text-sm">
+                      {viewingNote.content}
+                    </pre>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setViewingNote(null)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Download className="w-5 h-5" />
+                  Download
+                </button>
+              </div>
             </div>
           </div>
         )}
