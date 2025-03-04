@@ -15,12 +15,25 @@ interface Subject {
   records: AttendanceRecord[];
 }
 
+
 const DateRecords = () => {
   const { date } = useParams<{ date: string }>();
   const { user } = useAuth();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+
+const handleAction = (action) => {
+  if (buttonDisabled) return; // Prevent multiple clicks
+
+  setButtonDisabled(true);
+  action(); // Execute the passed function
+
+  setTimeout(() => {
+    setButtonDisabled(false);
+  }, 1000); // 1-second delay
+};
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -30,9 +43,10 @@ const DateRecords = () => {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const subjects: Subject[] = docSnap.data().subjects || [];
+            console.log("Fetched subjects:", subjects);
             const filteredRecords = subjects.flatMap(subject =>
               subject.records
-                .filter(record => record.status)
+                .filter(record => record.date.split('T')[0] === date)
                 .map(record => ({ ...record, subjectName: subject.name }))
             );
             setRecords(filteredRecords);
@@ -48,51 +62,70 @@ const DateRecords = () => {
     };
     fetchRecords();
   }, [user, date]);
-
   const toggleStatus = async (recordIndex: number) => {
     if (!user) return;
+  
     const updatedRecords = [...records];
-    updatedRecords[recordIndex].status = updatedRecords[recordIndex].status === 'present' ? 'absent' : 'present';
+    updatedRecords[recordIndex].status =
+      updatedRecords[recordIndex].status === 'present' ? 'absent' : 'present';
     setRecords(updatedRecords);
-
+  
     try {
       const docRef = doc(db, 'attendance', user.uid);
       const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const subjects: Subject[] = data.subjects || [];
-
-        for (let subject of subjects) {
-          let record = subject.records.find(r => r.subjectName === updatedRecords[recordIndex].subjectName);
-          if (record) {
-            record.status = updatedRecords[recordIndex].status;
-            break;
-          }
-        }
-        await updateDoc(docRef, { subjects });
+  
+      if (!docSnap.exists()) {
+        console.error("User attendance document not found.");
+        return;
       }
+  
+      const data = docSnap.data();
+      let subjects: Subject[] = data.subjects || [];
+  
+      let updatedSubjects = subjects.map(subject => ({
+        ...subject,
+        records: subject.records.map(record =>
+          record.date === updatedRecords[recordIndex].date
+            ? { ...record, status: updatedRecords[recordIndex].status }
+            : record
+        ),
+      }));
+  
+      console.log("Updating Firestore with:", updatedSubjects);
+      await updateDoc(docRef, { subjects: updatedSubjects });
+  
     } catch (error) {
       console.error('Error updating record:', error);
     }
   };
-
   const deleteRecord = async (recordIndex: number) => {
     if (!user) return;
+  
     const updatedRecords = records.filter((_, index) => index !== recordIndex);
     setRecords(updatedRecords);
-
+  
     try {
       const docRef = doc(db, 'attendance', user.uid);
       const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const subjects: Subject[] = data.subjects || [];
-        
-        for (let subject of subjects) {
-          subject.records = subject.records.filter(r => r.subjectName !== records[recordIndex].subjectName);
-        }
-        await updateDoc(docRef, { subjects });
+  
+      if (!docSnap.exists()) {
+        console.error("User attendance document not found.");
+        return;
       }
+  
+      const data = docSnap.data();
+      let subjects: Subject[] = data.subjects || [];
+  
+      let updatedSubjects = subjects.map(subject => ({
+        ...subject,
+        records: subject.records.filter(
+          record => record.date !== records[recordIndex].date
+        ),
+      }));
+  
+      console.log("Updating Firestore after deletion with:", updatedSubjects);
+      await updateDoc(docRef, { subjects: updatedSubjects });
+  
     } catch (error) {
       console.error('Error deleting record:', error);
     }
@@ -118,13 +151,15 @@ const DateRecords = () => {
                   <span className="text-gray-700">{record.subjectName} - {record.status}</span>
                   <div className="space-x-2">
                     <button 
-                      onClick={() => toggleStatus(index)}
+                      onClick={() => handleAction(() => toggleStatus(index))}
+                      disabled={buttonDisabled}
                       className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600"
                     >
                       Change
                     </button>
                     <button 
-                      onClick={() => deleteRecord(index)}
+                      onClick={() => handleAction(() => deleteRecord(index))}
+                      disabled={buttonDisabled}
                       className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
                     >
                       Delete
