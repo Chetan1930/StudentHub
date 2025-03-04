@@ -134,19 +134,7 @@ export default function Attendance() {
         if (field === 'total' && !increment && newValue < subject.attended) {
           return subject;
         }
-        // Add a record when adjusting attendance
-        // const newRecords = [...subject.records];
-        // if (field === 'attended') {
-        //   if (increment) {
-        //     newRecords.push({ date: new Date().toISOString(), status: 'present' });
-        //   } else if (subject.records.length > 0) {
-        //     // Remove the last present record when decreasing attended
-        //     const lastPresentIndex = newRecords.findLastIndex(r => r.status === 'present');
-        //     if (lastPresentIndex !== -1) {
-        //       newRecords.splice(lastPresentIndex, 1);
-        //     }
-        //   }
-        // }
+        
         setHasUnsavedChanges(true);
         return {
           ...subject,
@@ -211,13 +199,7 @@ export default function Attendance() {
     });
     setHasUnsavedChanges(true);
   };
-  // const saveAttendance = async (updatedSubjects: Subject[]) => {
-  //   if (user) {
-  //     const docRef = doc(db, 'attendance', user.uid);
-  //     await setDoc(docRef, { subjects: updatedSubjects }, { merge: true });
-  //   }
-  // };
-
+  
   const saveChanges = async () => {
     setIsSaving(true);
     try {
@@ -334,6 +316,8 @@ export default function Attendance() {
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   return (
+
+    
     <div className="min-h-screen pt-20 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
@@ -472,42 +456,6 @@ export default function Attendance() {
               </div>
             </div>
 
-            {/* Monthly Calendar View */}
-            {/* {showMonthlyDetails && (
-              <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-gray-500 font-medium py-1">
-                    {day}
-                  </div>
-                ))}
-                {Array.from({ length: new Date(selectedYear, selectedMonth, 1).getDay() }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square" />
-                ))}
-                {monthlyData.map(({ day, present, total, percentage }) => (
-                  <div 
-                    key={day}
-                    className={`aspect-square p-1 rounded-lg ${
-                      total > 0 
-                        ? percentage >= 75 
-                          ? 'bg-green-500/20' 
-                          : percentage >= 60 
-                            ? 'bg-yellow-500/20' 
-                            : 'bg-red-500/20'
-                        : 'bg-gray-700/50'
-                    }`}
-                  >
-                    <div className="h-full flex flex-col justify-between p-1">
-                      <span className="text-xs">{day}</span>
-                      {total > 0 && (
-                        <div className="text-[10px] font-medium">
-                          {present}/{total}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )} */}
             {showMonthlyDetails && (
   <div className="grid grid-cols-7 gap-1 text-center text-sm">
     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
