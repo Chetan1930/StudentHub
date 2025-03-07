@@ -10,4 +10,5 @@ export default defineConfig({
   server: {
     historyApiFallback: true, // Redirects all requests to index.html
   },
+  
 });
