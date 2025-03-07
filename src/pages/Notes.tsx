@@ -1,17 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-<<<<<<< HEAD
-import { 
-  Upload, 
-  BookOpen, 
-  Search, 
-  Filter, 
-  Download, 
-  Trash2, 
-  FileText, 
-  Plus, 
-  X, 
-  Check, 
-=======
 import {
   Upload,
   BookOpen,
@@ -23,7 +10,6 @@ import {
   Plus,
   X,
   Check,
->>>>>>> 357a3e8 (notes section)
   ChevronDown,
   ChevronUp,
   Eye,
@@ -35,85 +21,8 @@ import {
   XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-<<<<<<< HEAD
-
-// Mock data for notes with file content for viewing
-const MOCK_NOTES = [
-  {
-    id: '1',
-    title: 'Introduction to Data Structures',
-    course: 'B.Tech',
-    year: 'Second',
-    semester: '3',
-    subject: 'Data Structures',
-    uploadDate: '2025-01-15',
-    fileUrl: '#',
-    fileType: 'pdf',
-    fileSize: '2.4 MB',
-    uploadedBy: 'John Doe',
-    content: 'This is a sample content for Introduction to Data Structures. In a real application, this would be the actual file content or a link to the file.'
-  },
-  {
-    id: '2',
-    title: 'Algorithms Analysis',
-    course: 'B.Tech',
-    year: 'Second',
-    semester: '4',
-    subject: 'Algorithms',
-    uploadDate: '2025-02-10',
-    fileUrl: '#',
-    fileType: 'pdf',
-    fileSize: '1.8 MB',
-    uploadedBy: 'Jane Smith',
-    content: 'This is a sample content for Algorithms Analysis. In a real application, this would be the actual file content or a link to the file.'
-  },
-  {
-    id: '3',
-    title: 'Database Management Systems',
-    course: 'B.Tech',
-    year: 'Third',
-    semester: '5',
-    subject: 'DBMS',
-    uploadDate: '2025-03-05',
-    fileUrl: '#',
-    fileType: 'pdf',
-    fileSize: '3.2 MB',
-    uploadedBy: 'Alex Johnson',
-    content: 'This is a sample content for Database Management Systems. In a real application, this would be the actual file content or a link to the file.'
-  },
-  {
-    id: '4',
-    title: 'Operating Systems Concepts',
-    course: 'B.Tech',
-    year: 'Third',
-    semester: '5',
-    subject: 'Operating Systems',
-    uploadDate: '2025-03-20',
-    fileUrl: '#',
-    fileType: 'pdf',
-    fileSize: '4.1 MB',
-    uploadedBy: 'Sarah Williams',
-    content: 'This is a sample content for Operating Systems Concepts. In a real application, this would be the actual file content or a link to the file.'
-  },
-  {
-    id: '5',
-    title: 'Computer Networks',
-    course: 'B.Tech',
-    year: 'Third',
-    semester: '6',
-    subject: 'Networks',
-    uploadDate: '2025-04-12',
-    fileUrl: '#',
-    fileType: 'pdf',
-    fileSize: '2.9 MB',
-    uploadedBy: 'Michael Brown',
-    content: 'This is a sample content for Computer Networks. In a real application, this would be the actual file content or a link to the file.'
-  }
-];
-=======
 import axios from "axios";
 
->>>>>>> 357a3e8 (notes section)
 
 // Maximum file size in MB
 const MAX_FILE_SIZE = 200;
@@ -128,11 +37,7 @@ export default function Notes() {
     subject: "",
     file: null,
   });
-<<<<<<< HEAD
-  const [notes, setNotes] = useState(MOCK_NOTES);
-=======
   const [notes, setNotes] = useState([]);
->>>>>>> 357a3e8 (notes section)
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     course: "",
@@ -148,15 +53,6 @@ export default function Notes() {
   });
   const [viewingNote, setViewingNote] = useState(null);
   const [fileError, setFileError] = useState("");
-<<<<<<< HEAD
-  
-  const { user } = useAuth();
-  const fileInputRef = useRef(null);
-  
-  // For demo purposes, we'll consider a specific user as admin
-  const isAdmin = user && user.email === 'test@example.com';
-=======
->>>>>>> 357a3e8 (notes section)
 
   const { user } = useAuth();
   const fileInputRef = useRef(null);
@@ -181,33 +77,6 @@ export default function Notes() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsUploading(true);
-<<<<<<< HEAD
-    
-    // Simulate upload delay
-    setTimeout(() => {
-      const newNote = {
-        id: Date.now().toString(),
-        title: formState.title,
-        course: formState.course,
-        year: formState.year,
-        semester: formState.semester,
-        subject: formState.subject,
-        uploadDate: new Date().toISOString().split('T')[0],
-        fileUrl: '#',
-        fileType: formState.file ? formState.file.name.split('.').pop() : 'pdf',
-        fileSize: formState.file ? `${(formState.file.size / (1024 * 1024)).toFixed(1)} MB` : '0 MB',
-        uploadedBy: user ? user.name : 'Guest User',
-        content: `This is a sample content for ${formState.title}. In a real application, this would be the actual file content.`
-      };
-      
-      setNotes([newNote, ...notes]);
-      setFormState({ title: "", course: "", year: "", semester: "", subject: "", file: null });
-      setShowUploadForm(false);
-      setIsUploading(false);
-    }, 1500);
-  };
-
-=======
 
     const formData = new FormData();
     formData.append("userId", user.uid); // Ensure you add a valid userId
@@ -240,7 +109,6 @@ export default function Notes() {
 
 
 
->>>>>>> 357a3e8 (notes section)
   const handleDelete = (id) => {
     // Only admin can delete notes
     if (isAdmin) {
@@ -269,34 +137,6 @@ export default function Notes() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFileError("");
-<<<<<<< HEAD
-    
-    if (file) {
-      const fileSizeMB = file.size / (1024 * 1024);
-      if (fileSizeMB > MAX_FILE_SIZE) {
-        setFileError(`File size exceeds the maximum limit of ${MAX_FILE_SIZE}MB`);
-        // Reset the file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-        return;
-      }
-      
-      setFormState({...formState, file: file});
-    }
-  };
-
-  const viewNote = (note) => {
-    setViewingNote(note);
-  };
-
-  const filteredNotes = notes.filter(note => {
-    return (
-      (searchTerm === "" || 
-        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase())) &&
-=======
     if (!file) return;
 
     const fileSizeMB = file.size / (1024 * 1024);
@@ -330,7 +170,6 @@ export default function Notes() {
         note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         note.subjectName.toLowerCase().includes(searchTerm.toLowerCase())
       ) &&
->>>>>>> 357a3e8 (notes section)
       (filters.course === "" || note.course === filters.course) &&
       (filters.year === "" || note.year === filters.year) &&
       (filters.semester === "" || note.semester === filters.semester) &&
@@ -419,11 +258,7 @@ export default function Notes() {
                 <option value="M.Com">M.Com</option>
                 <option value="BBA">BBA</option>
               </select>
-<<<<<<< HEAD
-              
-=======
 
->>>>>>> 357a3e8 (notes section)
               <select
                 name="year"
                 value={filters.year}
@@ -431,21 +266,12 @@ export default function Notes() {
                 className="px-4 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               >
                 <option value="">All Years</option>
-<<<<<<< HEAD
-                <option value="First">First</option>
-                <option value="Second">Second</option>
-                <option value="Third">Third</option>
-                <option value="Fourth">Fourth</option>
-              </select>
-              
-=======
                 <option value="1">First</option>
                 <option value="2">Second</option>
                 <option value="3">Third</option>
                 <option value="4">Fourth</option>
               </select>
 
->>>>>>> 357a3e8 (notes section)
               <select
                 name="semester"
                 value={filters.semester}
@@ -462,11 +288,7 @@ export default function Notes() {
                 <option value="7">7</option>
                 <option value="8">8</option>
               </select>
-<<<<<<< HEAD
-              
-=======
 
->>>>>>> 357a3e8 (notes section)
               <div className="flex gap-2 md:col-span-3">
                 <button
                   onClick={resetFilters}
@@ -488,11 +310,7 @@ export default function Notes() {
                 <thead>
                   <tr className="bg-gray-700">
                     <th className="px-4 py-3 text-left">
-<<<<<<< HEAD
-                      <button 
-=======
                       <button
->>>>>>> 357a3e8 (notes section)
                         className="flex items-center gap-1 text-gray-300 hover:text-white"
                         onClick={() => requestSort('title')}
                       >
@@ -500,11 +318,7 @@ export default function Notes() {
                       </button>
                     </th>
                     <th className="px-4 py-3 text-left">
-<<<<<<< HEAD
-                      <button 
-=======
                       <button
->>>>>>> 357a3e8 (notes section)
                         className="flex items-center gap-1 text-gray-300 hover:text-white"
                         onClick={() => requestSort('subject')}
                       >
@@ -512,11 +326,7 @@ export default function Notes() {
                       </button>
                     </th>
                     <th className="px-4 py-3 text-left">
-<<<<<<< HEAD
-                      <button 
-=======
                       <button
->>>>>>> 357a3e8 (notes section)
                         className="flex items-center gap-1 text-gray-300 hover:text-white"
                         onClick={() => requestSort('course')}
                       >
@@ -524,11 +334,7 @@ export default function Notes() {
                       </button>
                     </th>
                     <th className="px-4 py-3 text-left">
-<<<<<<< HEAD
-                      <button 
-=======
                       <button
->>>>>>> 357a3e8 (notes section)
                         className="flex items-center gap-1 text-gray-300 hover:text-white"
                         onClick={() => requestSort('uploadedBy')}
                       >
@@ -536,11 +342,7 @@ export default function Notes() {
                       </button>
                     </th>
                     <th className="px-4 py-3 text-left">
-<<<<<<< HEAD
-                      <button 
-=======
                       <button
->>>>>>> 357a3e8 (notes section)
                         className="flex items-center gap-1 text-gray-300 hover:text-white"
                         onClick={() => requestSort('uploadDate')}
                       >
@@ -558,21 +360,13 @@ export default function Notes() {
                           <FileText className="w-5 h-5 text-purple-500 mt-1" />
                           <div>
                             <div className="font-medium">{note.title}</div>
-<<<<<<< HEAD
-                            <div className="text-sm text-gray-400">{note.fileType.toUpperCase()} • {note.fileSize}</div>
-=======
                             <div className="text-sm text-gray-400">{note.file.contentType ? note.file.contentType.toUpperCase() : "UNKNOWN"} • {note.fileSize}</div>
->>>>>>> 357a3e8 (notes section)
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-sm">
-<<<<<<< HEAD
-                          {note.subject}
-=======
                           {note.subjectName}
->>>>>>> 357a3e8 (notes section)
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -601,14 +395,9 @@ export default function Notes() {
                           <button
                             className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                             title="Download"
-<<<<<<< HEAD
-                          >
-                            <Download className="w-4 h-4" />
-=======
 
                           >
                             <Download className="w-4 h-4" /><a href={note.downloadLink}>hji</a>
->>>>>>> 357a3e8 (notes section)
                           </button>
                           {isAdmin && (
                             <button
@@ -674,13 +463,8 @@ export default function Notes() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-<<<<<<< HEAD
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-=======
 
               <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
->>>>>>> 357a3e8 (notes section)
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
                     Note Title
@@ -688,21 +472,13 @@ export default function Notes() {
                   <input
                     type="text"
                     value={formState.title}
-<<<<<<< HEAD
-                    onChange={(e) => setFormState({...formState, title: e.target.value})}
-=======
                     onChange={(e) => setFormState({ ...formState, title: e.target.value })}
->>>>>>> 357a3e8 (notes section)
                     placeholder="Enter a descriptive title"
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                     required
                   />
                 </div>
-<<<<<<< HEAD
-                
-=======
 
->>>>>>> 357a3e8 (notes section)
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -710,11 +486,7 @@ export default function Notes() {
                     </label>
                     <select
                       value={formState.course}
-<<<<<<< HEAD
-                      onChange={(e) => setFormState({...formState, course: e.target.value})}
-=======
                       onChange={(e) => setFormState({ ...formState, course: e.target.value })}
->>>>>>> 357a3e8 (notes section)
                       className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                       required
                     >
@@ -730,35 +502,18 @@ export default function Notes() {
                       <option value="BBA">BBA</option>
                     </select>
                   </div>
-<<<<<<< HEAD
-                  
-=======
 
->>>>>>> 357a3e8 (notes section)
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">
                       Year
                     </label>
                     <select
                       value={formState.year}
-<<<<<<< HEAD
-                      onChange={(e) => setFormState({...formState, year: e.target.value})}
-=======
                       onChange={(e) => setFormState({ ...formState, year: e.target.value })}
->>>>>>> 357a3e8 (notes section)
                       className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                       required
                     >
                       <option value="">Select Year</option>
-<<<<<<< HEAD
-                      <option value="First">First</option>
-                      <option value="Second">Second</option>
-                      <option value="Third">Third</option>
-                      <option value="Fourth">Fourth</option>
-                    </select>
-                  </div>
-                  
-=======
                       <option value="1">First</option>
                       <option value="2">Second</option>
                       <option value="3">Third</option>
@@ -766,57 +521,36 @@ export default function Notes() {
                     </select>
                   </div>
 
->>>>>>> 357a3e8 (notes section)
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">
                       Semester
                     </label>
                     <select
                       value={formState.semester}
-<<<<<<< HEAD
-                      onChange={(e) => setFormState({...formState, semester: e.target.value})}
-=======
                       onChange={(e) => setFormState({ ...formState, semester: e.target.value })}
->>>>>>> 357a3e8 (notes section)
                       className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                       required
                     >
                       <option value="">Select Semester</option>
-<<<<<<< HEAD
-                      {formState.year === "First" && (
-=======
                       {formState.year === "1" && (
->>>>>>> 357a3e8 (notes section)
                         <>
                           <option value="1">1</option>
                           <option value="2">2</option>
                         </>
                       )}
-<<<<<<< HEAD
-                      {formState.year === "Second" && (
-=======
                       {formState.year === "2" && (
->>>>>>> 357a3e8 (notes section)
                         <>
                           <option value="3">3</option>
                           <option value="4">4</option>
                         </>
                       )}
-<<<<<<< HEAD
-                      {formState.year === "Third" && (
-=======
                       {formState.year === "3" && (
->>>>>>> 357a3e8 (notes section)
                         <>
                           <option value="5">5</option>
                           <option value="6">6</option>
                         </>
                       )}
-<<<<<<< HEAD
-                      {formState.year === "Fourth" && (
-=======
                       {formState.year === "4" && (
->>>>>>> 357a3e8 (notes section)
                         <>
                           <option value="7">7</option>
                           <option value="8">8</option>
@@ -824,11 +558,7 @@ export default function Notes() {
                       )}
                     </select>
                   </div>
-<<<<<<< HEAD
-                  
-=======
 
->>>>>>> 357a3e8 (notes section)
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">
                       Subject
@@ -836,32 +566,21 @@ export default function Notes() {
                     <input
                       type="text"
                       value={formState.subject}
-<<<<<<< HEAD
-                      onChange={(e) => setFormState({...formState, subject: e.target.value})}
-=======
                       onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
->>>>>>> 357a3e8 (notes section)
                       placeholder="Enter Subject"
                       className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                       required
                     />
                   </div>
                 </div>
-<<<<<<< HEAD
-                
-=======
 
->>>>>>> 357a3e8 (notes section)
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
                     Upload File
                   </label>
                   <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
                     <input
-<<<<<<< HEAD
-=======
                       name="n"
->>>>>>> 357a3e8 (notes section)
                       type="file"
                       onChange={handleFileChange}
                       className="hidden"
@@ -889,11 +608,7 @@ export default function Notes() {
                     </div>
                   )}
                 </div>
-<<<<<<< HEAD
-                
-=======
 
->>>>>>> 357a3e8 (notes section)
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
@@ -905,14 +620,8 @@ export default function Notes() {
                   <button
                     type="submit"
                     disabled={isUploading || fileError}
-<<<<<<< HEAD
-                    className={`px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2 ${
-                      (isUploading || fileError) ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-=======
                     className={`px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2 ${(isUploading || fileError) ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
->>>>>>> 357a3e8 (notes section)
                   >
                     {isUploading ? (
                       <>
@@ -948,19 +657,11 @@ export default function Notes() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-<<<<<<< HEAD
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-sm text-gray-400">Subject</p>
-                  <p className="text-white">{viewingNote.subject}</p>
-=======
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <p className="text-sm text-gray-400">Subject</p>
                   <p className="text-white">{viewingNote.subjectName}</p>
->>>>>>> 357a3e8 (notes section)
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Course</p>
@@ -982,29 +683,13 @@ export default function Notes() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">File Type</p>
-<<<<<<< HEAD
-                  <p className="text-white">{viewingNote.fileType.toUpperCase()}</p>
-=======
                   <p className="text-white">{viewingNote.file.contentType ? viewingNote.file.contentType.toUpperCase() : "UNKNOWN"}</p>
->>>>>>> 357a3e8 (notes section)
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">File Size</p>
                   <p className="text-white">{viewingNote.fileSize}</p>
                 </div>
               </div>
-<<<<<<< HEAD
-              
-              <div className="border-t border-gray-700 pt-6">
-                <h3 className="text-lg font-medium mb-4">File Content</h3>
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  {viewingNote.fileType === 'pdf' ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-400 mb-4">PDF Viewer would be displayed here in a real application.</p>
-                      <p className="text-sm text-gray-500">{viewingNote.content}</p>
-                    </div>
-                  ) : viewingNote.fileType === 'docx' ? (
-=======
 
               <div className="border-t border-gray-700 pt-6">
                 <h3 className="text-lg font-medium mb-4">File Content</h3>
@@ -1020,7 +705,6 @@ export default function Notes() {
                       ></iframe></p>
                     </div>
                   ) : viewingNote.file.contentType === 'docx' ? (
->>>>>>> 357a3e8 (notes section)
                     <div className="text-center py-8">
                       <p className="text-gray-400 mb-4">DOCX Viewer would be displayed here in a real application.</p>
                       <p className="text-sm text-gray-500">{viewingNote.content}</p>
@@ -1032,11 +716,7 @@ export default function Notes() {
                   )}
                 </div>
               </div>
-<<<<<<< HEAD
-              
-=======
 
->>>>>>> 357a3e8 (notes section)
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setViewingNote(null)}
@@ -1048,11 +728,7 @@ export default function Notes() {
                   className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <Download className="w-5 h-5" />
-<<<<<<< HEAD
-                  Download
-=======
                   Downloadd
->>>>>>> 357a3e8 (notes section)
                 </button>
               </div>
             </div>
