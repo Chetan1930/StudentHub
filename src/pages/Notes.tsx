@@ -63,9 +63,8 @@ export default function Notes() {
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const response = await axios.get(" https://studentbackend-f9da4bb5cd81.herokuapp.com/api/notes");
+        const response = await axios.get("https://studentbackend-f9da4bb5cd81.herokuapp.com/api/notes");
         console.log("data aa gya", response.data);
-
         setNotes(response.data);
       } catch (error) {
         console.error("Error fetching notesg:", error);
@@ -91,7 +90,7 @@ export default function Notes() {
 
     try {
       console.log("data gya");
-      const response = await axios.post(" https://studentbackend-f9da4bb5cd81.herokuapp.com/api/notes", formData, {
+      const response = await axios.post("https://studentbackend-f9da4bb5cd81.herokuapp.com/api/notes", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log("m res hu", response);
@@ -658,7 +657,7 @@ export default function Notes() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <p className="text-sm text-gray-400">Subject</p>
                   <p className="text-white">{viewingNote.subjectName}</p>
@@ -689,24 +688,24 @@ export default function Notes() {
                   <p className="text-sm text-gray-400">File Size</p>
                   <p className="text-white">{viewingNote.fileSize}</p>
                 </div>
-              </div>
+              </div> */}
 
               <div className="border-t border-gray-700 pt-6">
-                <h3 className="text-lg font-medium mb-4">File Content</h3>
+                {/* <h3 className="text-lg font-medium mb-4">File Content</h3> */}
                 <div className="bg-gray-700 p-4 rounded-lg">
                   {viewingNote.file.contentType === 'application/pdf' ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-400 mb-4">PDF Viewer would be displayed here in a real application.</p>
-                      <p className="text-sm text-gray-500"><iframe
+                      {/* <p className="text-gray-400 mb-4">PDF Viewer would be displayed here in a real application.</p> */}
+                      <iframe className="text-sm text-gray-500"
                         src={viewingNote.fileUrl}
                         width="100%"
                         height="600px"
                         title="PDF Preview"
-                      ></iframe></p>
+                      ></iframe>
                     </div>
                   ) : viewingNote.file.contentType === 'docx' ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-400 mb-4">DOCX Viewer would be displayed here in a real application.</p>
+                      {/* <p className="text-gray-400 mb-4">DOCX Viewer would be displayed here in a real application.</p> */}
                       <p className="text-sm text-gray-500">{viewingNote.content}</p>
                     </div>
                   ) : (
